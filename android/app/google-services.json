@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1080907367525",
+    "project_id": "appyoyaku-83d76",
+    "storage_bucket": "appyoyaku-83d76.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1080907367525:android:ea82adaa4eb81b56fe328c",
+        "android_client_info": {
+          "package_name": "com.example.yoyaku"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBMhCN4zcjNqsuGG0YCqxXtMYpbfr1tWXQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
