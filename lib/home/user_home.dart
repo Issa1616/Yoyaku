@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../auth/login_screen.dart';
+import '/layout/menu_drawer.dart';
+import '/layout/drawer_items.dart';
+import '/auth/login_screen.dart';
 
 class UserHome extends StatelessWidget {
   const UserHome({super.key});
@@ -16,17 +18,36 @@ class UserHome extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("User - Yoyaku"),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () => logout(context),
-          ),
-        ],
+    final items = [
+      DrawerItem(
+        title: "Inicio",
+        icon: Icons.home,
+        onTap: () => Navigator.pop(context),
       ),
-      body: const Center(child: Text("Bienvenido a Yoyaku User")),
+      DrawerItem(
+        title: "Usuarios",
+        icon: Icons.people,
+        onTap: () => Navigator.pop(context),
+      ),
+      DrawerItem(
+        title: "Negocios",
+        icon: Icons.business,
+        onTap: () => Navigator.pop(context),
+      ),
+      DrawerItem(
+        title: "Cerrar sesión",
+        icon: Icons.logout,
+        onTap: () async {
+          Navigator.pop(context);
+          await logout(context);
+        },
+      ),
+    ];
+
+    return Scaffold(
+      appBar: AppBar(title: const Text("Admin - Yoyaku")),
+      drawer: AppDrawer(roleName: "Admin", items: items),
+      body: const Center(child: Text("Dashboard Admin")),
     );
   }
 }

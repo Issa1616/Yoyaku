@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:yoyaku/shell/instructor_shell.dart';
 
 import '../../home/admin_home.dart';
 import '../../home/owner_home.dart';
-import '../../home/instructor_home.dart';
+import '../../shell/instructor_shell.dart';
 import '../../home/user_home.dart';
 
 class RoleGate extends StatelessWidget {
@@ -38,7 +39,7 @@ class RoleGate extends StatelessWidget {
           case 2:
             return const OwnerHome();
           case 3:
-            return const InstructorHome();
+            return const InstructorShell();
           default:
             return const UserHome();
         }
