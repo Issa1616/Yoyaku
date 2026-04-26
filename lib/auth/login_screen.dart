@@ -9,13 +9,17 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final name = TextEditingController();
   final email = TextEditingController();
   final password = TextEditingController();
+
   final auth = AuthController();
 
   bool loading = false;
+  bool isLogin = true;
   bool obscure = true;
 
+  /// LOGIN
   void login() async {
     setState(() => loading = true);
 
@@ -31,6 +35,25 @@ class _LoginScreenState extends State<LoginScreen> {
     showMessage("Inicio de sesión exitoso");
   }
 
+  void register() async {
+    setState(() => loading = true);
+
+    final error = await auth.register(
+      name.text.trim(),
+      email.text.trim(),
+      password.text.trim(),
+    );
+
+    setState(() => loading = false);
+
+    if (error != null) {
+      showMessage(error);
+      return;
+    }
+
+    showMessage("Usuario registrado correctamente");
+  }
+
   void showMessage(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
@@ -41,10 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [
-              Color.fromARGB(255, 255, 255, 255),
-              Color.fromARGB(255, 128, 145, 84),
-            ],
+            colors: [Colors.white, Color(0xFF809154)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -56,13 +76,17 @@ class _LoginScreenState extends State<LoginScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 28),
               child: Column(
                 children: [
+                  /// LOGO
                   Image.asset("assets/logito.png", height: 120),
 
-                  const SizedBox(height: 15),
+                  const SizedBox(height: 20),
 
-                  const Text(
-                    "Iniciar sesión",
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500),
+                  Text(
+                    isLogin ? "Iniciar sesión" : "Crear cuenta",
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
 
                   const SizedBox(height: 25),
@@ -70,29 +94,27 @@ class _LoginScreenState extends State<LoginScreen> {
                   Container(
                     padding: const EdgeInsets.all(22),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(.85),
+                      color: Colors.white.withOpacity(.9),
                       borderRadius: BorderRadius.circular(25),
-                      boxShadow: const [
-                        BoxShadow(
-                          blurRadius: 20,
-                          color: Colors.black12,
-                          offset: Offset(0, 10),
-                        ),
-                      ],
                     ),
+
                     child: Column(
                       children: [
+                        if (!isLogin)
+                          Column(
+                            children: [
+                              TextField(
+                                controller: name,
+                                decoration: input("Nombre", Icons.person),
+                              ),
+                              const SizedBox(height: 18),
+                            ],
+                          ),
                         TextField(
                           controller: email,
-                          decoration: InputDecoration(
-                            hintText: "Correo electrónico",
-                            prefixIcon: const Icon(Icons.mail_outline),
-                            filled: true,
-                            fillColor: const Color.fromARGB(255, 219, 221, 217),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(14),
-                              borderSide: BorderSide.none,
-                            ),
+                          decoration: input(
+                            "Correo electrónico",
+                            Icons.mail_outline,
                           ),
                         ),
 
@@ -101,28 +123,21 @@ class _LoginScreenState extends State<LoginScreen> {
                         TextField(
                           controller: password,
                           obscureText: obscure,
-                          decoration: InputDecoration(
-                            hintText: "Contraseña",
-                            prefixIcon: const Icon(Icons.lock_outline),
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                obscure
-                                    ? Icons.visibility_off
-                                    : Icons.visibility,
+                          decoration: input("Contraseña", Icons.lock_outline)
+                              .copyWith(
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    obscure
+                                        ? Icons.visibility_off
+                                        : Icons.visibility,
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      obscure = !obscure;
+                                    });
+                                  },
+                                ),
                               ),
-                              onPressed: () {
-                                setState(() {
-                                  obscure = !obscure;
-                                });
-                              },
-                            ),
-                            filled: true,
-                            fillColor: const Color.fromARGB(255, 219, 221, 217),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(14),
-                              borderSide: BorderSide.none,
-                            ),
-                          ),
                         ),
 
                         const SizedBox(height: 25),
@@ -130,59 +145,49 @@ class _LoginScreenState extends State<LoginScreen> {
                         SizedBox(
                           width: double.infinity,
                           height: 55,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(30),
-                            onTap: loading ? null : login,
-                            child: Ink(
-                              decoration: BoxDecoration(
+                          child: ElevatedButton(
+                            onPressed: loading
+                                ? null
+                                : (isLogin ? login : register),
+
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF809154),
+                              shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(30),
-                                gradient: const LinearGradient(
-                                  colors: [
-                                    Color(0xFF9BC59D),
-                                    Color(0xFF1E4633),
-                                  ],
-                                ),
                               ),
-                              child: Center(
-                                child: loading
-                                    ? const CircularProgressIndicator(
-                                        color: Color.fromARGB(
-                                          255,
-                                          128,
-                                          145,
-                                          84,
-                                        ),
-                                      )
-                                    : const Text(
-                                        "Entrar",
-                                        style: TextStyle(
-                                          color: Color(0xFF1E4633),
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                              ),
+                              elevation: 4,
                             ),
+
+                            child: loading
+                                ? const CircularProgressIndicator(
+                                    color: Colors.white,
+                                  )
+                                : Text(
+                                    isLogin ? "Entrar" : "Registrarse",
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 15),
+
+                        TextButton(
+                          onPressed: () {
+                            setState(() {
+                              isLogin = !isLogin;
+                            });
+                          },
+                          child: Text(
+                            isLogin
+                                ? "¿No tienes cuenta? Regístrate"
+                                : "Ya tengo cuenta",
                           ),
                         ),
                       ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  const SizedBox(height: 8),
-
-                  const SizedBox(height: 8),
-
-                  TextButton(
-                    onPressed: () {},
-                    child: const Text(
-                      "Regístrate",
-                      style: TextStyle(
-                        color: Color(0xFF1E4633),
-                        fontWeight: FontWeight.w600,
-                      ),
                     ),
                   ),
                 ],
@@ -190,6 +195,19 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  InputDecoration input(String hint, IconData icon) {
+    return InputDecoration(
+      hintText: hint,
+      prefixIcon: Icon(icon),
+      filled: true,
+      fillColor: const Color(0xFFDBDDD9),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide.none,
       ),
     );
   }

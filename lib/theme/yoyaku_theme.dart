@@ -8,7 +8,7 @@ class AppTheme {
     scaffoldBackgroundColor: const Color(0xfff6f8fb),
 
     colorScheme: ColorScheme.fromSeed(
-      seedColor: const Color(0xFF2BBBAD),
+      seedColor: const Color(0xFF809154),
       brightness: Brightness.light,
     ),
 
