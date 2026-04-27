@@ -1,53 +1,115 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import '/layout/menu_drawer.dart';
-import '/layout/drawer_items.dart';
-import '/auth/login_screen.dart';
+import '../../widgets/header_yoyaku.dart';
+import '../../widgets/business_card.dart';
+import '../../services/business_service.dart';
+import '../../models/business_model.dart';
 
-class AdminHome extends StatelessWidget {
+class AdminHome extends StatefulWidget {
   const AdminHome({super.key});
 
-  Future<void> logout(BuildContext context) async {
-    await Supabase.instance.client.auth.signOut();
+  @override
+  State<AdminHome> createState() => _AdminHomeState();
+}
 
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-      (route) => false,
-    );
+class _AdminHomeState extends State<AdminHome> {
+  final service = BusinessService();
+
+  List<BusinessModel> list = [];
+  bool loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    loadBusinesses();
+  }
+
+  Future<void> loadBusinesses() async {
+    setState(() => loading = true);
+
+    final data = await service.getAllBusinesses();
+
+    setState(() {
+      list = data;
+      loading = false;
+    });
+  }
+
+  Future<bool> confirmarEliminacion(BuildContext context) async {
+    return await showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+            title: const Text("Eliminar negocio"),
+            content: const Text("¿Seguro que deseas eliminar este negocio?"),
+            actions: [
+              TextButton(
+                child: const Text("Cancelar"),
+                onPressed: () => Navigator.pop(context, false),
+              ),
+              ElevatedButton(
+                child: const Text("Eliminar"),
+                onPressed: () => Navigator.pop(context, true),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+  }
+
+  Future<void> deleteBusiness(int id) async {
+    await service.deleteBusiness(id);
+
+    await loadBusinesses();
+
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text("Negocio eliminado")));
   }
 
   @override
   Widget build(BuildContext context) {
-    final items = [
-      DrawerItem(
-        title: "Inicio",
-        icon: Icons.home,
-        onTap: () => Navigator.pop(context),
-      ),
-      DrawerItem(
-        title: "Usuarios",
-        icon: Icons.people,
-        onTap: () => Navigator.pop(context),
-      ),
-      DrawerItem(
-        title: "Negocios",
-        icon: Icons.business,
-        onTap: () => Navigator.pop(context),
-      ),
-      DrawerItem(
-        title: "Cerrar sesión",
-        icon: Icons.logout,
-        onTap: () async {
-          Navigator.pop(context);
-          await logout(context);
-        },
-      ),
-    ];
+    if (loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
-    return Scaffold(
-      appBar: AppBar(title: const Text("Admin - Yoyaku")),
-      drawer: AppDrawer(roleName: "Admin", items: items),
-      body: const Center(child: Text("Dashboard Admin")),
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: ListView(
+          children: [
+            const YoyakuHeader(),
+
+            const SizedBox(height: 30),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: const [
+                Text(
+                  "Negocios",
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 20),
+
+            if (list.isEmpty)
+              const Center(child: Text("No hay negocios registrados")),
+
+            ...list.map(
+              (b) => BusinessCard(
+                business: b,
+                onDelete: () async {
+                  final confirmar = await confirmarEliminacion(context);
+
+                  if (confirmar) {
+                    await deleteBusiness(b.id);
+                  }
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

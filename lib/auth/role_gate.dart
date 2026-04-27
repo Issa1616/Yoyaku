@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:yoyaku/shell/admin_shell.dart';
 import 'package:yoyaku/shell/instructor_shell.dart';
+import 'package:yoyaku/shell/user_shell.dart';
 
-import '../../home/admin_home.dart';
+import '../../shell/admin_shell.dart';
 import '../../shell/owner_shell.dart';
 import '../../shell/instructor_shell.dart';
-import '../../home/user_home.dart';
+import '../../shell/user_shell.dart';
 
 class RoleGate extends StatelessWidget {
   final String userId;
@@ -35,13 +37,13 @@ class RoleGate extends StatelessWidget {
 
         switch (role) {
           case 1:
-            return const AdminHome();
+            return const AdminShell();
           case 2:
             return const OwnerShell();
           case 3:
             return const InstructorShell();
           default:
-            return const UserHome();
+            return const UserShell();
         }
       },
     );
