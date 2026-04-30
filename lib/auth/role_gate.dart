@@ -9,10 +9,57 @@ import '../../shell/owner_shell.dart';
 import '../../shell/instructor_shell.dart';
 import '../../shell/user_shell.dart';
 
-class RoleGate extends StatelessWidget {
-  final String userId;
+class RoleGate extends StatefulWidget {
+  const RoleGate({super.key});
 
-  const RoleGate({super.key, required this.userId});
+  @override
+  State<RoleGate> createState() => _RoleGateState();
+}
+
+class _RoleGateState extends State<RoleGate> {
+  final supabase = Supabase.instance.client;
+
+  bool loading = true;
+  String? role;
+
+  @override
+  void initState() {
+    super.initState();
+    loadRole();
+  }
+
+  Future<void> loadRole() async {
+    try {
+      final user = supabase.auth.currentUser;
+
+      if (user == null) {
+        setState(() {
+          loading = false;
+          role = null;
+        });
+        return;
+      }
+
+      final response = await supabase
+          .from('users')
+          .select('roles(name)')
+          .eq('id', user.id)
+          .maybeSingle();
+
+      final roleName = response?['roles']?['name'];
+
+      setState(() {
+        role = roleName;
+        loading = false;
+      });
+    } catch (e) {
+      debugPrint("Error cargando rol: $e");
+      setState(() {
+        role = null;
+        loading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
