@@ -5,21 +5,25 @@ import 'role_gate.dart';
 
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});
-
   @override
   Widget build(BuildContext context) {
     final supabase = Supabase.instance.client;
-
     return StreamBuilder<AuthState>(
       stream: supabase.auth.onAuthStateChange,
       builder: (context, snapshot) {
         final session = supabase.auth.currentSession;
 
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
         if (session == null) {
           return const LoginScreen();
         }
 
-        return RoleGate(userId: session.user.id);
+        return const RoleGate();
       },
     );
   }

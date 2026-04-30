@@ -5,7 +5,14 @@ class AuthController {
 
   Future<String?> login(String email, String password) async {
     try {
-      await supabase.auth.signInWithPassword(email: email, password: password);
+      final response = await supabase.auth.signInWithPassword(
+        email: email,
+        password: password,
+      );
+
+      if (response.session == null) {
+        return "No se pudo iniciar sesión";
+      }
 
       return null;
     } catch (e) {
@@ -15,18 +22,15 @@ class AuthController {
 
   Future<String?> register(String name, String email, String password) async {
     try {
-      final response = await supabase.auth.signUp(
+      await supabase.auth.signUp(
         email: email,
         password: password,
+        data: {'name': name},
       );
 
-      final userId = response.user?.id;
-
-      if (userId != null) {
-        await supabase.from('users').update({'name': name}).eq('id', userId);
-      }
       return null;
     } catch (e) {
+      print(e);
       return "Error al registrarse";
     }
   }

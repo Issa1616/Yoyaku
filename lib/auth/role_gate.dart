@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:yoyaku/shell/admin_shell.dart';
-import 'package:yoyaku/shell/instructor_shell.dart';
-import 'package:yoyaku/shell/user_shell.dart';
 
 import '../../shell/admin_shell.dart';
 import '../../shell/owner_shell.dart';
@@ -20,7 +17,7 @@ class _RoleGateState extends State<RoleGate> {
   final supabase = Supabase.instance.client;
 
   bool loading = true;
-  String? role;
+  int? roleId;
 
   @override
   void initState() {
@@ -35,27 +32,25 @@ class _RoleGateState extends State<RoleGate> {
       if (user == null) {
         setState(() {
           loading = false;
-          role = null;
+          roleId = null;
         });
         return;
       }
 
       final response = await supabase
           .from('users')
-          .select('roles(name)')
+          .select('role_id')
           .eq('id', user.id)
           .maybeSingle();
 
-      final roleName = response?['roles']?['name'];
-
       setState(() {
-        role = roleName;
+        roleId = response?['role_id'];
         loading = false;
       });
     } catch (e) {
-      debugPrint("Error cargando rol: $e");
+      debugPrint("RoleGate error: $e");
       setState(() {
-        role = null;
+        roleId = null;
         loading = false;
       });
     }
@@ -63,36 +58,26 @@ class _RoleGateState extends State<RoleGate> {
 
   @override
   Widget build(BuildContext context) {
-    final supabase = Supabase.instance.client;
+    if (loading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
 
-    return FutureBuilder(
-      future: supabase.from('users').select('rol_id').eq('id', userId).single(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
+    if (roleId == null) {
+      return const Scaffold(body: Center(child: Text("Error cargando rol")));
+    }
 
-        if (!snapshot.hasData) {
-          return const Scaffold(
-            body: Center(child: Text("Error cargando rol")),
-          );
-        }
+    switch (roleId) {
+      case 1:
+        return const AdminShell();
 
-        final role = snapshot.data!['rol_id'];
+      case 2:
+        return const OwnerShell();
 
-        switch (role) {
-          case 1:
-            return const AdminShell();
-          case 2:
-            return const OwnerShell();
-          case 3:
-            return const InstructorShell();
-          default:
-            return const UserShell();
-        }
-      },
-    );
+      case 3:
+        return const InstructorShell();
+
+      default:
+        return const UserShell();
+    }
   }
 }

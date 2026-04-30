@@ -35,11 +35,6 @@ class _AdminShellState extends State<AdminShell> {
             label: "Home",
           ),
           NavigationDestination(
-            icon: Icon(Icons.chat_bubble_outline),
-            selectedIcon: Icon(Icons.chat_bubble),
-            label: "Negocios",
-          ),
-          NavigationDestination(
             icon: Icon(Icons.calendar_today_outlined),
             selectedIcon: Icon(Icons.calendar_today),
             label: "Adminsitradores",

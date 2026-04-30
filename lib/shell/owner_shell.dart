@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../home/owner_home.dart';
-import '../classes/owner_classes.dart';
-import '../my/my_bussness.dart';
+import '../owner/instructors_screen.dart';
+import '../owner/my_bussness_screen.dart';
+import '../owner/class_screen.dart';
 
 class OwnerShell extends StatefulWidget {
   const OwnerShell({super.key});
@@ -13,7 +14,12 @@ class OwnerShell extends StatefulWidget {
 class _OwnerShellState extends State<OwnerShell> {
   int currentIndex = 0;
 
-  final pages = const [OwnerHome(), OwnerClasses(), MyBussness()];
+  final pages = const [
+    OwnerHome(),
+    Instructors(),
+    MyBusiness(),
+    CreateClassScreen(),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -44,6 +50,11 @@ class _OwnerShellState extends State<OwnerShell> {
             icon: Icon(Icons.chat_bubble_outline),
             selectedIcon: Icon(Icons.chat_bubble),
             label: "Mi negocio",
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.add_circle_outline),
+            selectedIcon: Icon(Icons.add_circle),
+            label: "Clases",
           ),
         ],
       ),

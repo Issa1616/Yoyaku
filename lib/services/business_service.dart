@@ -7,13 +7,15 @@ class BusinessService {
   Future<int?> getMyBusinessId() async {
     final user = supabase.auth.currentUser;
 
+    if (user == null) return null;
+
     final response = await supabase
         .from('business')
         .select('id')
-        .eq('owner_id', user!.id)
-        .single();
+        .eq('owner_id', user.id)
+        .maybeSingle();
 
-    return response['id'];
+    return response?['id'];
   }
 
   Future<List<BusinessModel>> getAllBusinesses() async {

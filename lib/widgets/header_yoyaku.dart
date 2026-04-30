@@ -1,44 +1,65 @@
 import 'package:flutter/material.dart';
+import '../services/user_service.dart';
+import '../edit_profile.dart';
 
-class YoyakuHeader extends StatelessWidget {
+class YoyakuHeader extends StatefulWidget {
   const YoyakuHeader({super.key});
 
   @override
+  State<YoyakuHeader> createState() => _YoyakuHeaderState();
+}
+
+class _YoyakuHeaderState extends State<YoyakuHeader> {
+  final service = UserService();
+
+  Map<String, dynamic>? user;
+
+  @override
+  void initState() {
+    super.initState();
+    loadUser();
+  }
+
+  Future<void> loadUser() async {
+    final data = await service.getMyUser();
+    setState(() => user = data);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (user == null) {
+      return const SizedBox();
+    }
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
+          children: [
+            const Text("Bienvenido a "),
             Text(
-              "YOYAKU",
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 1.2,
-              ),
-            ),
-            SizedBox(height: 4),
-            Text(
-              "Bienvenido",
-              style: TextStyle(color: Colors.grey, fontSize: 14),
+              "Yoyaku",
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
           ],
         ),
 
-        Container(
-          padding: const EdgeInsets.all(4),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: Color.fromARGB(255, 110, 179, 147),
-              width: 2,
-            ),
-          ),
-          child: const CircleAvatar(
-            radius: 22,
-            backgroundImage: AssetImage("assets/user.jpg"),
+        GestureDetector(
+          onTap: () async {
+            await Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const EditProfile()),
+            );
+
+            loadUser(); // refrescar header
+          },
+          child: CircleAvatar(
+            radius: 26,
+            backgroundImage: user!['image'] != null
+                ? NetworkImage(user!['image'])
+                : null,
+            child: user!['image'] == null ? const Icon(Icons.person) : null,
           ),
         ),
       ],

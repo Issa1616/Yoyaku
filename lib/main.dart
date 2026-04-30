@@ -10,6 +10,7 @@ Future<void> main() async {
   await Supabase.initialize(
     url: 'https://jarkyigjgfwusgwuapve.supabase.co',
     anonKey: 'sb_publishable_d4NGrfQDU2ikt_A-JAyYjQ_groe4PNw',
+    authOptions: const FlutterAuthClientOptions(autoRefreshToken: true),
   );
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
