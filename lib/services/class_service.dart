@@ -38,16 +38,27 @@ class ClassService {
         .toList();
   }
 
+  Future<List<Map<String, dynamic>>> getClasses() async {
+    final businessId = await businessService.getMyBusinessId();
+
+    if (businessId == null) return [];
+
+    final res = await supabase
+        .from('classes')
+        .select('''
+          *,
+          class_types(name),
+          users(name)
+        ''')
+        .eq('business_id', businessId)
+        .order('created_at', ascending: false);
+
+    return List<Map<String, dynamic>>.from(res);
+  }
+
   Future<void> createClass({
     required int classTypeId,
     required String instructorId,
-    required String title,
-    required String description,
-    required DateTime date,
-    required String time,
-    required String endTime,
-    required int cupo,
-    String? image,
   }) async {
     final businessId = await businessService.getMyBusinessId();
 
@@ -59,13 +70,16 @@ class ClassService {
       'classtype_id': classTypeId,
       'instructor_id': instructorId,
       'business_id': businessId,
-      'title': title,
-      'description': description,
-      'date': date.toIso8601String(),
-      'time': time,
-      'end_time': endTime,
-      'cupo_max': cupo,
-      'image': image,
+      'title': '',
+      'description': '',
+      'date': DateTime.now().toIso8601String(),
+      'time': '00:00:00',
+      'end_time': '00:00:00',
+      'cupo_max': 0,
     });
+  }
+
+  Future<void> deleteClass(int id) async {
+    await supabase.from('classes').delete().eq('id', id);
   }
 }

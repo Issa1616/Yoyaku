@@ -18,7 +18,7 @@ class _OwnerShellState extends State<OwnerShell> {
     OwnerHome(),
     Instructors(),
     MyBusiness(),
-    CreateClassScreen(),
+    ClassesScreen(),
   ];
 
   @override

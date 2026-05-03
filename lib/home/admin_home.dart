@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../widgets/header_yoyaku.dart';
-import '../../widgets/business_card.dart';
-import '../../services/business_service.dart';
-import '../../models/business_model.dart';
+import '../../services/admin_service.dart';
+import '../../models/admin_user_model.dart';
 
 class AdminHome extends StatefulWidget {
   const AdminHome({super.key});
@@ -12,104 +11,111 @@ class AdminHome extends StatefulWidget {
 }
 
 class _AdminHomeState extends State<AdminHome> {
-  final service = BusinessService();
+  final service = AdminService();
 
-  List<BusinessModel> list = [];
+  List<AdminUserModel> owners = [];
+  List businesses = [];
   bool loading = true;
 
   @override
   void initState() {
     super.initState();
-    loadBusinesses();
+    loadData();
   }
 
-  Future<void> loadBusinesses() async {
+  Future<void> loadData() async {
     setState(() => loading = true);
 
-    final data = await service.getAllBusinesses();
+    final o = await service.getOwnersWithBusiness();
+    final b = await service.getBusinesses();
 
     setState(() {
-      list = data;
+      owners = o;
+      businesses = b;
       loading = false;
     });
   }
 
-  Future<bool> confirmarEliminacion(BuildContext context) async {
-    return await showDialog(
-          context: context,
-          builder: (_) => AlertDialog(
-            title: const Text("Eliminar negocio"),
-            content: const Text("¿Seguro que deseas eliminar este negocio?"),
-            actions: [
-              TextButton(
-                child: const Text("Cancelar"),
-                onPressed: () => Navigator.pop(context, false),
-              ),
-              ElevatedButton(
-                child: const Text("Eliminar"),
-                onPressed: () => Navigator.pop(context, true),
-              ),
-            ],
-          ),
-        ) ??
-        false;
+  Future<void> downgrade(String id) async {
+    await service.downgradeToUser(id);
+    await loadData();
+
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text("Owner degradado a user")));
   }
 
   Future<void> deleteBusiness(int id) async {
     await service.deleteBusiness(id);
-
-    await loadBusinesses();
-
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text("Negocio eliminado")));
+    await loadData();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (loading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
     return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: ListView(
-          children: [
-            const YoyakuHeader(),
+      child: loading
+          ? const Center(child: CircularProgressIndicator())
+          : Padding(
+              padding: const EdgeInsets.all(20),
+              child: ListView(
+                children: [
+                  const YoyakuHeader(),
 
-            const SizedBox(height: 30),
+                  const SizedBox(height: 20),
 
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
-                Text(
-                  "Negocios",
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
-                ),
-              ],
-            ),
+                  const Text(
+                    "Owners",
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  ),
 
-            const SizedBox(height: 20),
+                  const SizedBox(height: 10),
 
-            if (list.isEmpty)
-              const Center(child: Text("No hay negocios registrados")),
+                  ...owners.map((o) {
+                    return Card(
+                      child: ListTile(
+                        leading: const Icon(Icons.person),
+                        title: Text(o.name),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(o.email),
+                            if (o.businessName != null)
+                              Text("🏪 ${o.businessName}"),
+                          ],
+                        ),
+                        trailing: TextButton(
+                          onPressed: () => downgrade(o.id),
+                          child: const Text("Degradar"),
+                        ),
+                      ),
+                    );
+                  }),
 
-            ...list.map(
-              (b) => BusinessCard(
-                business: b,
-                onDelete: () async {
-                  final confirmar = await confirmarEliminacion(context);
+                  const SizedBox(height: 30),
 
-                  if (confirmar) {
-                    await deleteBusiness(b.id);
-                  }
-                },
+                  const Text(
+                    "Negocios",
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  ...businesses.map((b) {
+                    return Card(
+                      child: ListTile(
+                        leading: const Icon(Icons.store),
+                        title: Text(b['name']),
+                        subtitle: Text(b['ubicacion'] ?? ''),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () => deleteBusiness(b['id']),
+                        ),
+                      ),
+                    );
+                  }),
+                ],
               ),
             ),
-          ],
-        ),
-      ),
     );
   }
 }
