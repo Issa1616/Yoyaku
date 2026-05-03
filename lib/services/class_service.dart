@@ -126,4 +126,15 @@ class ClassService {
   Future<void> cancelSession(int id) async {
     await supabase.from('class_sessions').delete().eq('id', id);
   }
+
+  Future<List<Map<String, dynamic>>> getInstructorClasses(
+    String instructorId,
+  ) async {
+    final res = await supabase
+        .from('classes')
+        .select('*, class_types(name)')
+        .eq('instructor_id', instructorId);
+
+    return List<Map<String, dynamic>>.from(res);
+  }
 }
