@@ -82,4 +82,46 @@ class ClassService {
   Future<void> deleteClass(int id) async {
     await supabase.from('classes').delete().eq('id', id);
   }
+
+  Future<List<Map<String, dynamic>>> getInstructorUpcomingClasses() async {
+    final user = supabase.auth.currentUser;
+
+    if (user == null) {
+      throw Exception("No hay usuario logueado");
+    }
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final nextWeek = today.add(const Duration(days: 7));
+
+    final startDate =
+        "${today.year.toString().padLeft(4, '0')}-"
+        "${today.month.toString().padLeft(2, '0')}-"
+        "${today.day.toString().padLeft(2, '0')}";
+
+    final endDate =
+        "${nextWeek.year.toString().padLeft(4, '0')}-"
+        "${nextWeek.month.toString().padLeft(2, '0')}-"
+        "${nextWeek.day.toString().padLeft(2, '0')}";
+
+    final res = await supabase
+        .from('classes')
+        .select('''
+        *,
+        class_types(name),
+        business(name)
+      ''')
+        .eq('instructor_id', user.id)
+        .eq('status', 'active')
+        .gte('date', startDate)
+        .lte('date', endDate)
+        .order('date', ascending: true)
+        .order('time', ascending: true);
+
+    return List<Map<String, dynamic>>.from(res);
+  }
+
+  Future<void> cancelClass(int id) async {
+    await supabase.from('classes').update({'status': 'cancelled'}).eq('id', id);
+  }
 }
