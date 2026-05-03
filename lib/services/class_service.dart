@@ -83,7 +83,7 @@ class ClassService {
     await supabase.from('classes').delete().eq('id', id);
   }
 
-  Future<List<Map<String, dynamic>>> getInstructorUpcomingClasses() async {
+  Future<List<Map<String, dynamic>>> getInstructorUpcomingSessions() async {
     final user = supabase.auth.currentUser;
 
     if (user == null) {
@@ -105,23 +105,25 @@ class ClassService {
         "${nextWeek.day.toString().padLeft(2, '0')}";
 
     final res = await supabase
-        .from('classes')
+        .from('class_sessions')
         .select('''
         *,
-        class_types(name),
-        business(name)
+        classes(
+          class_types(name),
+          business(name),
+          image
+        )
       ''')
         .eq('instructor_id', user.id)
-        .eq('status', 'active')
-        .gte('date', startDate)
-        .lte('date', endDate)
-        .order('date', ascending: true)
-        .order('time', ascending: true);
+        .gte('session_date', startDate)
+        .lte('session_date', endDate)
+        .order('session_date', ascending: true)
+        .order('start_time', ascending: true);
 
     return List<Map<String, dynamic>>.from(res);
   }
 
-  Future<void> cancelClass(int id) async {
-    await supabase.from('classes').update({'status': 'cancelled'}).eq('id', id);
+  Future<void> cancelSession(int id) async {
+    await supabase.from('class_sessions').delete().eq('id', id);
   }
 }

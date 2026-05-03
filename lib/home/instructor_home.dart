@@ -11,26 +11,26 @@ class InstructorHome extends StatefulWidget {
 }
 
 class _InstructorHomeState extends State<InstructorHome> {
-  final classService = ClassService();
+  final service = ClassService();
 
-  List<Map<String, dynamic>> classes = [];
+  List<Map<String, dynamic>> sessions = [];
   bool loading = true;
 
   @override
   void initState() {
     super.initState();
-    loadClasses();
+    loadSessions();
   }
 
-  Future<void> loadClasses() async {
+  Future<void> loadSessions() async {
     setState(() => loading = true);
 
-    classes = await classService.getInstructorUpcomingClasses();
+    sessions = await service.getInstructorUpcomingSessions();
 
     setState(() => loading = false);
   }
 
-  String formatDay(String date) {
+  String formatDate(String date) {
     final d = DateTime.tryParse(date);
     if (d == null) return "";
 
@@ -56,7 +56,7 @@ class _InstructorHomeState extends State<InstructorHome> {
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                "Próximas clases",
+                "Próximas sesiones",
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
             ),
@@ -65,68 +65,34 @@ class _InstructorHomeState extends State<InstructorHome> {
           Expanded(
             child: loading
                 ? const Center(child: CircularProgressIndicator())
-                : classes.isEmpty
-                ? const Center(child: Text("No tienes clases próximas"))
+                : sessions.isEmpty
+                ? const Center(child: Text("No tienes sesiones próximas"))
                 : ListView.builder(
                     padding: const EdgeInsets.all(16),
-                    itemCount: classes.length,
+                    itemCount: sessions.length,
                     itemBuilder: (context, i) {
-                      final c = classes[i];
+                      final s = sessions[i];
 
-                      return Dismissible(
-                        key: Key(c['id'].toString()),
+                      final classInfo = s['classes'];
 
-                        direction: DismissDirection.endToStart,
+                      final title =
+                          classInfo?['class_types']?['name'] ?? 'Clase';
 
-                        background: Container(
-                          alignment: Alignment.centerRight,
-                          padding: const EdgeInsets.only(right: 20),
-                          color: Colors.red,
-                          child: const Icon(Icons.delete, color: Colors.white),
-                        ),
+                      final location = classInfo?['business']?['name'] ?? '';
 
-                        confirmDismiss: (direction) async {
-                          return await showDialog(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              title: const Text("Cancelar clase"),
-                              content: const Text(
-                                "¿Seguro que quieres cancelar esta clase?",
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () =>
-                                      Navigator.pop(context, false),
-                                  child: const Text("No"),
-                                ),
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context, true),
-                                  child: const Text("Sí"),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
+                      final image =
+                          classInfo?['image'] ?? "assets/default_class.jpg";
 
-                        onDismissed: (direction) async {
-                          await classService.cancelClass(c['id']);
+                      final date = s['session_date'];
+                      final start = s['start_time'];
+                      final end = s['end_time'];
 
-                          setState(() {
-                            classes.removeAt(i);
-                          });
-
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("Clase cancelada")),
-                          );
-                        },
-
-                        child: ClassCard(
-                          title: c['class_types']?['name'] ?? 'Clase',
-                          time: formatTime(c['time'] ?? ''),
-                          location: c['business']?['name'] ?? 'Sin ubicación',
-                          dayLabel: formatDay(c['date']),
-                          image: "assets/default_class.jpg",
-                        ),
+                      return ClassCard(
+                        title: title,
+                        time: "${formatTime(start)} - ${formatTime(end)}",
+                        location: location,
+                        dayLabel: formatDate(date),
+                        image: image,
                       );
                     },
                   ),
